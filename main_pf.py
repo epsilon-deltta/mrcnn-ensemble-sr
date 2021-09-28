@@ -95,7 +95,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from rcnn_transfrom import InterpolationTransform as it
       
-def get_instance_segmentation_model(num_classes,pretrained=True,mode_name):
+def get_instance_segmentation_model(num_classes,pretrained=True,mode_name='ensemble-edsr'):
     # load an instance segmentation model pre-trained on COCO
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained)
 
@@ -150,7 +150,7 @@ data_loader_test = torch.utils.data.DataLoader(
 num_classes = 2
 
 
-model = get_instance_segmentation_model(num_classes,pretrained=pretrained,mode_name)
+model = get_instance_segmentation_model(num_classes,pretrained=pretrained,mode_name=mode_name)
 
 
 model.to(device)
