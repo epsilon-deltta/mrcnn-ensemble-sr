@@ -4,12 +4,25 @@ import torch
 import torch.utils.data
 from PIL import Image
 
+def get_idle_gpu():
+    import GPUtil as gp
+    gpus = gp.getGPUs()
+    gpus_util = [gpu.memoryUtil for gpu in gpus]
+    
+    import numpy as np
+    index = np.argmin(gpus_util)
+    device = 'cuda:'+str(index)
+    return device
 
+device = get_idle_gpu()
 num_epochs = 20
 batch_size = 4
 pretrained = False
 mode_names = ['edsr','espcn','fsrcnn','lapsrn']
-mode_name  = 'ensemble-'+ mode_names[1] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
+mode_index = 1
+mode_name  = 'ensemble-'+ mode_names[mode_index] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
+print(f'{mode_name} is started on the {device}')
+print(f'batch {batch_size}')
 
 class PennFudanDataset(torch.utils.data.Dataset):
     def __init__(self, root, transforms=None):
@@ -80,9 +93,9 @@ class PennFudanDataset(torch.utils.data.Dataset):
 import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
-
+from rcnn_transfrom import InterpolationTransform as it
       
-def get_instance_segmentation_model(num_classes,pretrained=True):
+def get_instance_segmentation_model(num_classes,pretrained=True,mode_name):
     # load an instance segmentation model pre-trained on COCO
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained)
 
@@ -98,7 +111,8 @@ def get_instance_segmentation_model(num_classes,pretrained=True):
     model.roi_heads.mask_predictor = MaskRCNNPredictor(in_features_mask,
                                                        hidden_layer,
                                                        num_classes)
-
+    
+    model.transform = it(min_size=(800,), max_size=1333,image_mean=[0.485, 0.456, 0.406],image_std=[0.229, 0.224, 0.225],mode=mode_name)
     return model
 
 from engine import train_one_epoch, evaluate
@@ -132,18 +146,13 @@ data_loader_test = torch.utils.data.DataLoader(
     dataset_test, batch_size=1, shuffle=False, num_workers=4,
     collate_fn=utils.collate_fn)
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-device = 'cuda:0'
+
 num_classes = 2
 
 
-model = get_instance_segmentation_model(num_classes,pretrained=pretrained)
+model = get_instance_segmentation_model(num_classes,pretrained=pretrained,mode_name)
 
-####################################
-from rcnn_transfrom import InterpolationTransform as it
 
-model.transform = it(min_size=(800,), max_size=1333,image_mean=[0.485, 0.456, 0.406],image_std=[0.229, 0.224, 0.225],mode=mode_name)
-#################################
 model.to(device)
 
 
@@ -162,7 +171,6 @@ from tqdm import notebook as nb
 evaluators = []
 for epoch in nb.tqdm(range(num_epochs)):
     
-    device = 'cuda:0'
 
     train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
 
@@ -173,7 +181,11 @@ for epoch in nb.tqdm(range(num_epochs)):
     evaluators.append( evaluate(model, data_loader_test, device=device) )
 
 
-
-torch.save({'state_dict':model.state_dict(),
+if pretrained :
+    torch.save({'state_dict':model.state_dict(),
            'evaluators':evaluators
-           },f'./model/pf_4_{mode_name}.pth')
+           },f'./model/pf_{batch_size}_{mode_name}.pth')
+else:
+    torch.save({'state_dict':model.state_dict(),
+           'evaluators':evaluators
+           },f'./model/pf_{batch_size}_{mode_name}_{pretrained}.pth')
