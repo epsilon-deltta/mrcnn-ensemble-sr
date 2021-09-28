@@ -15,6 +15,8 @@ class sr:
         self.method = method
         self.main   = main
             
+        if method in ['bicubic','bilinear']:
+            main = None
         if main in ['edsr','espcn','fsrcnn','lapsrn']:
             self.sr = dnn_superres.DnnSuperResImpl_create()
             model_name = main
@@ -32,7 +34,7 @@ class sr:
             
         elif main in ['rdn', 'esrgan', 'srgan'] :
             upimg = None
-            
+        
     def setmodel(self,main):
         pass
     
@@ -98,6 +100,13 @@ class sr:
             
             if (uw != fw) or (uh != fh) :
                 img = cv.resize(img, (fw,fh),interpolation=cv.INTER_CUBIC) 
+                
+        elif methods[0].lower() in ['bicubic','bilinear']:
+            method = methods[0].lower()
+            if method == 'bicubic' :
+                img = cv.resize(img, (uw,uh),interpolation=cv.INTER_CUBIC) 
+            if method == 'bilinear' :
+                img = cv.resize(img, (uw,uh),interpolation=cv.INTER_LINEAR) 
         else:
             ValueError(f"There is no {methods[0]}")
             
