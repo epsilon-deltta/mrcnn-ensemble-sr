@@ -7,8 +7,9 @@ from PIL import Image
 
 num_epochs = 20
 batch_size = 4
+pretrained = False
 mode_names = ['edsr','espcn','fsrcnn','lapsrn']
-mode_name  = 'ensemble-'+ mode_names[0] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
+mode_name  = 'ensemble-'+ mode_names[1] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
 
 class PennFudanDataset(torch.utils.data.Dataset):
     def __init__(self, root, transforms=None):
@@ -136,7 +137,7 @@ device = 'cuda:0'
 num_classes = 2
 
 
-model = get_instance_segmentation_model(num_classes,pretrained=False)
+model = get_instance_segmentation_model(num_classes,pretrained=pretrained)
 
 ####################################
 from rcnn_transfrom import InterpolationTransform as it
