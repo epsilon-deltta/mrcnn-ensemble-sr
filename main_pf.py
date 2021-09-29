@@ -3,6 +3,12 @@ import numpy as np
 import torch
 import torch.utils.data
 from PIL import Image
+import argparse
+
+parser = argparse.ArgumentParser("Train code")   
+# setting
+parser.add_argument('-m'  ,'--mode'   ,default=-1, type =int  ,metavar='{...}'    ,help="mode index ['edsr','espcn','fsrcnn','lapsrn'] ")
+args = parser.parse_args()
 
 def get_idle_gpu():
     import GPUtil as gp
@@ -15,11 +21,14 @@ def get_idle_gpu():
     return device
 
 device = get_idle_gpu()
+device = 'cuda:0'
 num_epochs = 20
-batch_size = 4
+batch_size = 2
 pretrained = False
 mode_names = ['edsr','espcn','fsrcnn','lapsrn']
-mode_index = 1
+mode_index = args.mode if args.mode != -1 else 1
+# mode_index = 1 
+
 mode_name  = 'ensemble-'+ mode_names[mode_index] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
 print(f'{mode_name} is started on the {device}')
 print(f'batch {batch_size}')
@@ -167,9 +176,9 @@ lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
 
 
 from tqdm import notebook as nb
-
+import tqdm
 evaluators = []
-for epoch in nb.tqdm(range(num_epochs)):
+for epoch in range(num_epochs):
     
 
     train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
