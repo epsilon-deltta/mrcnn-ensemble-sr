@@ -7,7 +7,8 @@ import argparse
 
 parser = argparse.ArgumentParser("Train code")   
 # setting
-parser.add_argument('-m'  ,'--mode'   ,default=-1, type =int  ,metavar='{...}'    ,help="mode index ['edsr','espcn','fsrcnn','lapsrn'] ")
+parser.add_argument('-m'  ,'--mode'   ,default=-1, type =int  ,metavar='{...}'    ,help="mode index 0: 'edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic'] ")
+parser.add_argument('-b'  ,'--batch'   ,default=-1, type =int  ,metavar='{...}'    ,help="batch size ")
 args = parser.parse_args()
 
 def get_idle_gpu():
@@ -23,13 +24,17 @@ def get_idle_gpu():
 device = get_idle_gpu()
 device = 'cuda:0'
 num_epochs = 20
-batch_size = 2
+batch_size = args.batch if args.batch != -1 else 4
 pretrained = False
-mode_names = ['edsr','espcn','fsrcnn','lapsrn']
+mode_names = ['edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic']
 mode_index = args.mode if args.mode != -1 else 1
 # mode_index = 1 
 
-mode_name  = 'ensemble-'+ mode_names[mode_index] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
+if mode_index in range(0,4):
+    mode_name = 'ensemble-'+ mode_names[mode_index] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
+else:
+    mode_name = mode_names[mode_index]
+
 print(f'{mode_name} is started on the {device}')
 print(f'batch {batch_size}')
 
