@@ -21,6 +21,7 @@ def get_idle_gpu():
     device = 'cuda:'+str(index)
     return device
 
+saved  = False
 device = get_idle_gpu()
 device = 'cuda:0'
 num_epochs = 20
@@ -29,11 +30,8 @@ pretrained = False
 mode_names = ['edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic']
 mode_index = args.mode if args.mode != -1 else 1
 # mode_index = 1 
-
-if mode_index in range(0,4):
-    mode_name = 'ensemble-'+ mode_names[mode_index] # edsr: slow, espcn,fsrcnn: fast, 'lapsrn': medium
-else:
-    mode_name = mode_names[mode_index]
+mode_name = 'ensemble-'+ mode_names[mode_index] if mode_index in range(0,4) else mode_names[mode_index]
+classes = ['Nothing','Pedestrian']    
 
 print(f'{mode_name} is started on the {device}')
 print(f'batch {batch_size}')
@@ -194,12 +192,14 @@ for epoch in range(num_epochs):
     # model.to(device)
     evaluators.append( evaluate(model, data_loader_test, device=device) )
 
-
-if pretrained :
-    torch.save({'state_dict':model.state_dict(),
-           'evaluators':evaluators
-           },f'./model/pf_{batch_size}_{mode_name}.pth')
+if saved:
+    if pretrained :
+        torch.save({'state_dict':model.state_dict(),
+            'evaluators':evaluators
+            },f'./model/pf_{batch_size}_{mode_name}.pth')
+    else:
+        torch.save({'state_dict':model.state_dict(),
+            'evaluators':evaluators
+            },f'./model/pf_{batch_size}_{mode_name}_{pretrained}.pth')
 else:
-    torch.save({'state_dict':model.state_dict(),
-           'evaluators':evaluators
-           },f'./model/pf_{batch_size}_{mode_name}_{pretrained}.pth')
+    pass
