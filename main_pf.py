@@ -6,9 +6,13 @@ from PIL import Image
 import argparse
 
 parser = argparse.ArgumentParser("Train code")   
+# when running in jupyterlab
+if os.path.basename(os.path.splitext(sys.argv[0])[0] ) =='ipykernel_launcher':
+    parser.add_argument('-f')
 # setting
 parser.add_argument('-m'  ,'--mode'   ,default=-1, type =int  ,metavar='{...}'    ,help="mode index 0: 'edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic'] ")
 parser.add_argument('-b'  ,'--batch'   ,default=-1, type =int  ,metavar='{...}'    ,help="batch size ")
+parser.add_argument('-p'  ,'--pretrained'   ,default=True, type =bool  ,metavar='{...}'    ,help="pre-trained ")
 args = parser.parse_args()
 
 def get_idle_gpu():
@@ -21,13 +25,14 @@ def get_idle_gpu():
     device = 'cuda:'+str(index)
     return device
 
-saved  = False
+saved  = True
 device = get_idle_gpu()
 device = 'cuda:0'
 num_epochs = 20
 batch_size = args.batch if args.batch != -1 else 4
 pretrained = False
-mode_names = ['edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic']
+pretrained = args.pretrained
+mode_names = ['edsr','espcn','fsrcnn','lapsrn','bilinear','bicubic','nearest']
 mode_index = args.mode if args.mode != -1 else 1
 # mode_index = 1 
 mode_name = 'ensemble-'+ mode_names[mode_index] if mode_index in range(0,4) else mode_names[mode_index]
