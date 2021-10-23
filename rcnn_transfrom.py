@@ -160,7 +160,7 @@ class InterpolationTransform(nn.Module):
                                  "of shape [C, H, W], got {}".format(image.shape))
             image = self.normalize(image)
             image, target_index = self.resize(image, target_index)
-            print(image.shape)
+            # print(image.shape)
             images[i] = image
             if targets is not None and target_index is not None:
                 targets[i] = target_index
@@ -231,30 +231,12 @@ class InterpolationTransform(nn.Module):
         scale_factor = self_min_size / min_size
         if max_size * scale_factor > self_max_size:
             scale_factor = self_max_size / max_size
-        print(f'scale factor {scale_factor}')
+        # print(f'scale factor {scale_factor}')
+        
         #mode: ensemble-edsr
         if mode.startswith('ensemble') :
-            # from sr import sr
-            # nmethd = mode.split('-')
-            # if   len(nmethd) == 1:
-            #     method = nmethd[0]
-            #     model ='edsr'
-            # elif len(nmethd) == 2:
-            #     method = nmethd[0]
-            #     model  = nmethd[1]
-
-            # else:
-            #     ValueError(f"There is no {mode} type method.")
-
-            # srmodel = sr(main=model,method='ensemble')
             image = self.srmodel.upsample(image,scale_factor) # torch>torch
-    #         if 2. <= scale_factor <= 3. :
-    #             image = sr(image,2,'edsr')
-    #             scale_factor = scale_factor - 1
-    #         elif 3. <= scale_factor <= 4. :
-    #             image = sr(image,2,'edsr')
-    #             scale_factor = scale_factor - 1
-
+            
         elif mode == 'nearest' or mode == 'area':
             image = torch.nn.functional.interpolate(
             image[None], scale_factor=scale_factor, mode=mode, recompute_scale_factor=True)[0]
