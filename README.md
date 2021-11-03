@@ -1,6 +1,6 @@
 # Ensemble of deep learning Super-resolution and interpolation in the Mask rcnn transform layer
-### What about?  Instance segmentation model : Mask-RCNN !   
-### So what : Improved Mask-RCNN performance
+
+# placeholder (preparing...)
 
 > input
 ![](./sample/pds1.jpg)
